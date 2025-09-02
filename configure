@@ -100,6 +100,7 @@ win32|mingw|directx|dx)
 	makefile=Makefile.win
 	buildname=DirectX
 	srclist='src/*.c src/win32/*.c'
+	LDFLAGS_sys='-lddraw -luser32 -lgdi32 -lwinmm'
 	;;
 
 *)

@@ -36,6 +36,6 @@ jobs:
         name: game-gnulinux
         path: |
           data/
-          sdlgame
+          game
 
 # vi:ts=2 sts=2 sw=2 expandtab:
