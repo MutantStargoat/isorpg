@@ -28,23 +28,80 @@ for arg in $*; do
 	esac
 done
 
+detect_compiler()
+{
+	printf 'Detecting compiler: '
+
+	if [ -z "$CC" ]; then
+		CC=cc; export CC
+	fi
+
+	testprog=/tmp/isorpg_cfgtest.c
+	echo '#ifndef __GNUC__' >$testprog
+	echo '#error nogcc' >>$testprog
+	echo '#endif' >>$testprog
+	echo 'int main(void) { return 0; }' >>$testprog
+	if $CC -o /dev/null $testprog 2>/dev/null; then
+		cc_gcc=true
+		echo 'GCC or compatible'
+	else
+		cc_gcc=false
+		echo 'not GCC'
+	fi
+	rm -f $testprog
+}
+
+sys=`uname -s | sed 's/IRIX.*/IRIX/; s/MINGW.*/mingw/'`
+if [ $sys = mingw ]; then
+	outdir=w32
+elif [ $sys = IRIX ]; then
+	outdir=unix
+	if $cc_gcc; then
+		arch=-mips3
+	else
+		arch='-n32 -mips3'
+	fi
+else
+	outdir=unix
+fi
+
+detect_compiler
+
 case $build in
 sdl)
-	makefile=Makefile.sdl
+	makefile=Makefile.in
 	buildname=SDL
+	srclist='src/*.c src/sdl/*.c'
+	CFLAGS_sys=`sdl-config --cflags`
+	LDFLAGS_sys=`sdl-config --libs`
 	;;
+
 gl|opengl)
-	makefile=Makefile.gl
+	makefile=Makefile.in
 	buildname=OpenGL
+	srclist='src/*.c src/gl/*.c'
+	if [ $sys = mingw ]; then
+		LDFLAGS_sys='-lopengl32'
+	elif [ $sys = Darwin ]; then
+		LDFLAGS_sys='-framework OpenGL'
+	else
+		LDFLAGS_sys='-lGL'
+	fi
 	;;
-x11)
-	makefile=Makefile.unix
+
+x11|unix)
+	makefile=Makefile.in
 	buildname=X11
+	srclist='src/*.c src/unix/*.c'
+	LDFLAGS_sys='-lX11'
 	;;
+
 win32|mingw|directx|dx)
-	makefile=Makefile.mingw
+	makefile=Makefile.win
 	buildname=DirectX
+	srclist='src/*.c src/win32/*.c'
 	;;
+
 *)
 	echo "unrecognized build target: $build" >&2
 	exit 1
@@ -56,13 +113,43 @@ echo "optimizations: $opt"
 echo "debug symbols: $dbg"
 
 echo "# Makefile for $buildname build" >Makefile
+echo "# Config file for $buildname build" >config.mk
+
+echo 'src = \' >>Makefile
+for i in `echo $srclist | sort`; do
+	echo "  $i \\" >>Makefile
+done
+echo '' >>Makefile
+echo 'bin = game' >>Makefile
+echo '' >>Makefile
+
 if $opt; then
 	if [ `uname -s` = SunOS ]; then
-		echo 'opt = -fast' >>Makefile
+		echo 'opt = -fast' >>config.mk
 	else
-		echo 'opt = -O3' >>Makefile
+		echo 'opt = -O3' >>config.mk
 	fi
 fi
-$dbg && echo 'dbg = -g' >>Makefile
-echo "# $makefile" >>Makefile
+$dbg && echo 'dbg = -g' >>config.mk
+echo >>config.mk
+
+if $cc_gcc; then
+	echo 'depgen = -MMD' >>config.mk
+	echo 'warn = -pedantic -Wall' >>config.mk
+	echo >>config.mk
+
+	echo '.PHONY: all' >>Makefile
+	echo 'all: $(bin)' >>Makefile
+	echo >>Makefile
+	echo '-include $(dep)' >>Makefile
+	echo >>Makefile
+fi
+
+echo "outdir = $outdir" >>config.mk
+[ -n "$arch" ] && echo "arch = $arch" >>config.mk
+[ -n "$CFLAGS_sys" ] && echo "CFLAGS_sys = $CFLAGS_sys" >>config.mk
+[ -n "$LDFLAGS_sys" ] && echo "LDFLAGS_sys = $LDFLAGS_sys" >>config.mk
+echo >>config.mk
+
+echo "# ---- $makefile" >>Makefile
 cat $makefile >>Makefile

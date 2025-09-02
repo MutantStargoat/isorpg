@@ -1,25 +1,19 @@
-src = $(wildcard src/*.c) $(wildcard src/sdl/*.c)
+include config.mk
+
 obj = $(src:.c=.o)
 dep = $(src:.c=.d)
-bin = sdlgame
 
-#opt ?= -O3
-dbg ?= -g
-warn = -pedantic -Wall
+incdir = -Isrc -Ilibs/imago/src
+libdir = -Llibs/$(outdir)
 
-incdir = -Isrc -Isrc/sdl -Ilibs/imago/src
-libdir = -Llibs/unix
-
-CFLAGS = $(warn) $(opt) $(dbg) $(incdir) `sdl-config --cflags` -MMD
-LDFLAGS = $(libdir) `sdl-config --libs` -limago -lm
-
-.PHONY: all
-all: $(bin) data
+CFLAGS = $(arch) $(warn) $(opt) $(dbg) $(incdir) $(CFLAGS_sys) $(depgen)
+LDFLAGS = $(libdir) $(LDFLAGS_sys) -limago -lm
 
 $(bin): $(obj) libs
 	$(CC) -o $@ $(obj) $(LDFLAGS)
 
--include $(dep)
+.c.o:
+	$(CC) $(CFLAGS) -c -o $@ $<
 
 .PHONY: clean
 clean:
@@ -46,10 +40,10 @@ cleanlibs: clean-imago
 
 .PHONY: imago
 imago:
-	$(MAKE) -C libs/imago
+	cd libs/imago; $(MAKE)
 
 .PHONY: clean-imago
 clean-imago:
-	$(MAKE) -C libs/imago clean
+	cd libs/imago; $(MAKE) clean
 
 # vi:ft=make:

@@ -15,7 +15,7 @@ Package=<4>
 
 ###############################################################################
 
-Project: "winjam24"=.\winjam24.dsp - Package Owner=<4>
+Project: "isorpg"=.\isorpg.dsp - Package Owner=<4>
 
 Package=<5>
 {{{
@@ -30,7 +30,7 @@ Package=<4>
 
 ###############################################################################
 
-Project: "winjam24_sdl"=.\winjam24_sdl.dsp - Package Owner=<4>
+Project: "isorpg_sdl"=.\isorpg_sdl.dsp - Package Owner=<4>
 
 Package=<5>
 {{{
