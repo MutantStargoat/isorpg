@@ -40,7 +40,7 @@ jobs:
       shell: cmd
       run: |
         call vc6fullvarsgh.bat
-        nmake -f Makefile.msvc
+        nmake -f Makefile.vc
         copy game.exe isorpg-win32-msvc
 
     - uses: actions/upload-artifact@v4
