@@ -106,7 +106,7 @@ static int translate_sdlkey(SDLKey sym)
 	case SDLK_RIGHT: return KEY_RIGHT;
 	case SDLK_UP: return KEY_UP;
 	case SDLK_DOWN: return KEY_DOWN;
-	case SDLK_INSERT: return KEY_INSERT;
+	case SDLK_INSERT: return KEY_INS;
 	case SDLK_HOME: return KEY_HOME;
 	case SDLK_END: return KEY_END;
 	case SDLK_PAGEUP: return KEY_PGUP;
