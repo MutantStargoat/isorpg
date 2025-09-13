@@ -25,6 +25,17 @@ int game_init(void)
 		return -1;
 	}
 
+#ifdef MSDOS
+	if((vmidx = gfx_findmode(opt.xres, opt.yres, 8, 0)) == -1) {
+		fprintf(stderr, "failed to find suitable video mode\n");
+		return -1;
+	}
+	printf("found video mode %d (%dx%d 8bpp) ...\n", vmidx, opt.xres, opt.yres);
+	if(gfx_setmode(vmidx) == -1 || gfx_setup(opt.xres, opt.yres, 8, 0) == -1) {
+		fprintf(stderr, "failed to set video mode\n");
+		return -1;
+	}
+#else
 	if(opt.fullscreen) {
 		if((vmidx = gfx_findmode(opt.xres, opt.yres, 8, 0)) == -1) {
 			fprintf(stderr, "failed to find suitable video mode, falling back to windowed\n");
@@ -50,6 +61,7 @@ windowed:
 			goto err;
 		}
 	}
+#endif
 
 	if(!(fnt = fnt_load("data/test.fnt"))) {
 		fprintf(stderr, "failed to load font\n");
